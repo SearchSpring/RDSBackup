@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+use lib './lib';
+use RDSBackup::CLI;
+
+exit RDSBackup::CLI->new->run(@ARGV);
+
+__END__
+
+=head1 NAME
+
+rdsbackup -- Creates and rotates RDS snapshots
+
+=cut
