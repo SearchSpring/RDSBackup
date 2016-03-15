@@ -58,7 +58,8 @@ sub run {
 		map { printf "%s\n", $_ } @{$self->error};
 		return 1;
 	}
-	$self->snapshotID($newsnap->DBSnapshotIdentifier, $newsnap);
+	my $DBSnapshot = $newsnap->DBSnapshot;
+	$self->snapshotID($DBSnapshot->DBSnapshotIdentifier, $DBSnapshot);
 	if ( @{ $self->error }[0] ) {
 		print "Log snapshot Failures:\n";
 		map { printf "%s\n", $_ } @{$self->error};
@@ -66,7 +67,7 @@ sub run {
 	}
 	if ( defined $self->snapsToDelete ) {
 		for my $snap (@{$self->snapsToDelete}) {
-			$self->deleteSnapshot($snap);
+			$self->deleteSnapshot($snap->DBSnapshotIdentifier);
 			$self->snapshotIDDelete($snap);
 			if ( @{ $self->error }[0]) {
 				print "Remove snapshot Failures:\n";
@@ -114,10 +115,11 @@ sub lastXSnaps {
 	my @sorted;
 	unless ( defined $self->_lastXSnaps ) {
 		if ( $self->findSnapsInLog ) {
+			my @snaps = grep {defined $_->SnapshotCreateTime } @{ $self->findSnapsInLog };
 			@sorted = sort {
-					str2time($a->SnapshotCreateTime) <=> str2time($b->SnapshotCreateTime); 
+					str2time($b->SnapshotCreateTime) <=> str2time($a->SnapshotCreateTime); 
 				} 
-				@{ $self->findSnapsInLog }
+				@snaps
 			;
 		}
 		if ($#sorted >= 1) {

@@ -4,6 +4,7 @@ use warnings;
 use Storable qw{ store retrieve };
 use Moose;
 
+use Data::Dumper;
 =head2
 
 dbfile -- Getter/Setter for path to DB file, defaults to "./RDSBackup.db"
@@ -29,7 +30,8 @@ sub create {
 			$self->storeDB;
 		}
 		eval {
-			$self->_db(retrieve($self->dbfile));
+			my $db = retrieve($self->dbfile);
+			$self->_db($db);
 		} or do {
 			$self->error("Unable to retrieve DB file: ".$@ );
 			return;
@@ -88,8 +90,11 @@ sub snapshotID {
 		$db->{$id} = $data;
 		$self->create($db);
 	}
-	# print Dumper \$id,\$data,\$self->db;
-	return $self->fetchAll->{$id};
+	if ( defined $self->fetchAll ) {
+		return $self->fetchAll->{$id};
+	}
+	$self->error('DB is not defined.');
+	return;
 }
 
 =head2

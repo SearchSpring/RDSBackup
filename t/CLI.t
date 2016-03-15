@@ -7,6 +7,8 @@ use Test::MockObject;
 use Paws;
 use Paws::RDS::DBSnapshot;
 use Paws::RDS::DBSnapshotMessage;
+use Paws::RDS::CreateDBSnapshotResult;
+use Paws::RDS::DeleteDBSnapshotResult;
 use Find::Lib '../lib' => 'RDSBackup::CLI';
 use RDSBackup::CLI;
 
@@ -34,8 +36,8 @@ my $DBSnapshotMessage = Paws::RDS::DBSnapshotMessage->new(
 	DBSnapshots => [ $DBSnapshot, $DBSnapshotNotMine, $DBSnapshot2 ],
 );
 $mockrds->fake_module('Paws::RDS',
-	CreateDBSnapshot => sub { $DBSnapshot },
-	DeleteDBSnapshot => sub { $DBSnapshot },
+	CreateDBSnapshot => sub { Paws::RDS::CreateDBSnapshotResult->new(DBSnapshot => $DBSnapshot) },
+	DeleteDBSnapshot => sub { Paws::RDS::DeleteDBSnapshotResult->new(DBSnapshot => $DBSnapshot) },
 	DescribeDBSnapshots => sub { $DBSnapshotMessage },
 	new => sub { bless {}, 'Paws::RDS' },
 );
@@ -68,7 +70,7 @@ unlink $dbfile or die($!);
 	$cli->snapshotID(1,$DBSnapshot);
 	$cli->snapshotID(2,$DBSnapshot2);
 	my $keep = $cli->lastXSnaps;
-	is_deeply($keep,[$DBSnapshot],'lastXSnaps -- expected $keep to be [$DBSnapshot].');
+	is_deeply($keep,[$DBSnapshot2],'lastXSnaps -- expected $keep to be [$DBSnapshot2].');
 	is_deeply($cli->error,[],'lastXSnaps -- expected error after lastXSnaps call to be empty.');
 	is($#{$keep}+1,$cli->keep,'lastXSnaps -- expected $keep to be $cli->keep.');
 }
@@ -80,7 +82,7 @@ unlink $dbfile or die($!);
 	$cli->snapshotID(1,$DBSnapshot);
 	$cli->snapshotID(2,$DBSnapshot2);
 	my $delete = $cli->snapsToDelete;
-	is_deeply($delete,[$DBSnapshot2],'snapsToDelete -- expected $delete to be [$DBSnapshot2].');
+	is_deeply($delete,[$DBSnapshot],'snapsToDelete -- expected $delete to be [$DBSnapshot2].');
 	is_deeply($cli->error,[],'snapsToDelete -- expected error after snapsToDelete call to be empty.');
 }
 unlink $dbfile or die($!);

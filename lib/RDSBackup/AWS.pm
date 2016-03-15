@@ -61,10 +61,9 @@ deleteSnapshot -- Removes a Snapshot from AWS and the DB
 sub deleteSnapshot {
 	my ($self,$id) = @_;
 	return unless defined $id;
-	my $snapshot;
 	eval {
-		printf "Fake Removing snapshot %s\n", $id;
-		# $snapshot = $rds->DeleteDBSnapshot( DBSnapshotIdentifier => $id);
+		printf "Removing snapshot %s\n", $id;
+		$self->rds->DeleteDBSnapshot( DBSnapshotIdentifier => $id);
 	} or do {
 		$self->error("Unable to create Snapshot:".$@ );
 		return;
